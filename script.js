@@ -1,357 +1,148 @@
 // ==========================================
-// NATURE SHEEP WEBSITE JAVASCRIPT
+// NATURE SIP PREMIUM JAVASCRIPT
 // ==========================================
 
-// Mobile Menu
+document.addEventListener('DOMContentLoaded', () => {
 
-const menuBtn = document.querySelector(".menu-btn");
-const navLinks = document.querySelector(".nav-links");
+    // --- Mobile Menu Toggle ---
+    const menuBtn = document.querySelector(".menu-btn");
+    const navLinks = document.querySelector(".nav-links");
+    const header = document.querySelector(".header");
+    const navItems = document.querySelectorAll(".nav-links a");
 
-menuBtn.addEventListener("click", () => {
-    navLinks.classList.toggle("active");
-});
+    function toggleMenu() {
+        menuBtn.classList.toggle("open");
+        navLinks.classList.toggle("active");
+        header.classList.toggle("nav-open");
+        document.body.style.overflow = navLinks.classList.contains("active") ? "hidden" : "";
+    }
 
-// ==========================================
-// Scroll Reveal Animation
-// ==========================================
+    menuBtn.addEventListener("click", toggleMenu);
 
-const revealElements = document.querySelectorAll(".reveal");
+    // Close menu when a link is clicked
+    navItems.forEach(item => {
+        item.addEventListener("click", () => {
+            if (navLinks.classList.contains("active")) {
+                toggleMenu();
+            }
+        });
+    });
 
-function revealOnScroll() {
 
-    revealElements.forEach((element) => {
-
-        const windowHeight = window.innerHeight;
-        const elementTop = element.getBoundingClientRect().top;
-
-        if (elementTop < windowHeight - 100) {
-            element.classList.add("active");
+    // --- Scroll Navbar Effect ---
+    window.addEventListener("scroll", () => {
+        if (window.scrollY > 50) {
+            header.classList.add("scrolled");
+        } else {
+            header.classList.remove("scrolled");
         }
-
     });
 
-}
 
-window.addEventListener("scroll", revealOnScroll);
-revealOnScroll();
+    // --- Intersection Observer for Scroll Reveals ---
+    const revealElements = document.querySelectorAll(".reveal, .form-reveal");
 
-// ==========================================
-// FAQ Accordion
-// ==========================================
+    const revealOptions = {
+        threshold: 0.15,
+        rootMargin: "0px 0px -50px 0px"
+    };
 
-const faqItems = document.querySelectorAll(".faq-item");
+    const revealObserver = new IntersectionObserver(function(entries, observer) {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) {
+                return;
+            } else {
+                entry.target.classList.add("active");
+                observer.unobserve(entry.target);
+            }
+        });
+    }, revealOptions);
 
-faqItems.forEach(item => {
-
-    const button = item.querySelector(".faq-question");
-
-    button.addEventListener("click", () => {
-
-        item.classList.toggle("active");
-
+    revealElements.forEach(el => {
+        revealObserver.observe(el);
     });
 
-});
 
-// ==========================================
-// Counter Animation
-// ==========================================
+    // --- Counter Animation ---
+    const counters = document.querySelectorAll(".counter");
+    let hasCounted = false;
 
-const counters = document.querySelectorAll(".counter");
+    const counterObserver = new IntersectionObserver((entries) => {
+        if(entries[0].isIntersecting && !hasCounted) {
+            hasCounted = true;
+            counters.forEach(counter => {
+                const target = +counter.getAttribute("data-target");
+                let count = 0;
+                const duration = 2000; // ms
+                const increment = target / (duration / 16); // 60fps
 
-let counterStarted = false;
+                const updateCounter = () => {
+                    count += increment;
+                    if (count < target) {
+                        counter.innerText = Math.floor(count);
+                        requestAnimationFrame(updateCounter);
+                    } else {
+                        counter.innerText = target.toLocaleString() + "+";
+                    }
+                };
+                updateCounter();
+            });
+        }
+    }, { threshold: 0.5 });
 
-function runCounters() {
+    const statsSection = document.querySelector(".stats-grid");
+    if(statsSection) {
+        counterObserver.observe(statsSection);
+    }
 
-    if(counterStarted) return;
 
-    const counterSection =
-    document.querySelector(".counter-section");
+    // --- WhatsApp Order Form Submission ---
+    const orderForm = document.getElementById("orderForm");
 
-    const sectionTop =
-    counterSection.getBoundingClientRect().top;
+    if (orderForm) {
+        orderForm.addEventListener("submit", function(e) {
+            e.preventDefault();
 
-    if(sectionTop < window.innerHeight - 100){
+            const name = document.getElementById("name").value.trim();
+            const phone = document.getElementById("phone").value.trim();
+            const business = document.getElementById("business").value.trim();
+            const address = document.getElementById("address").value.trim();
+            const product = document.getElementById("product").value;
+            const quantity = parseInt(document.getElementById("quantity").value);
 
-        counterStarted = true;
+            if (quantity < 2) {
+                alert("Minimum order requirement is 2 boxes/cans.");
+                return;
+            }
 
-        counters.forEach(counter => {
+            const businessText = business ? `\nCompany: ${business}` : "";
 
-            const target =
-            +counter.getAttribute("data-target");
+            const message = `*New Order Request - Nature Sip*\n\nName: ${name}${businessText}\nPhone: ${phone}\nDelivery Address: ${address}\n\n*Order Details:*\nProduct: ${product}\nQuantity: ${quantity}\n\nPlease confirm my order.`;
 
-            let count = 0;
+            const whatsappURL = `https://wa.me/918448417564?text=${encodeURIComponent(message)}`;
+            window.open(whatsappURL, "_blank");
+        });
+    }
 
-            const speed = target / 150;
+    // --- Smooth Active Link Highlight ---
+    const sections = document.querySelectorAll("section");
 
-            const updateCounter = () => {
-
-                if(count < target){
-
-                    count += speed;
-
-                    counter.innerText =
-                    Math.floor(count);
-
-                    requestAnimationFrame(updateCounter);
-
-                } else {
-
-                    counter.innerText =
-                    target.toLocaleString() + "+";
-
-                }
-
-            };
-
-            updateCounter();
-
+    window.addEventListener("scroll", () => {
+        let current = "";
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            const sectionHeight = section.clientHeight;
+            if (scrollY >= (sectionTop - 200)) {
+                current = section.getAttribute("id");
+            }
         });
 
-    }
-
-}
-
-window.addEventListener("scroll", runCounters);
-runCounters();
-
-// ==========================================
-// Navbar Background Effect
-// ==========================================
-
-window.addEventListener("scroll", () => {
-
-    const header =
-    document.querySelector(".header");
-
-    if(window.scrollY > 80){
-
-        header.style.background =
-        "rgba(255,255,255,0.95)";
-
-        header.style.boxShadow =
-        "0 10px 30px rgba(0,0,0,.08)";
-
-    }else{
-
-        header.style.background =
-        "rgba(255,255,255,.85)";
-
-        header.style.boxShadow =
-        "none";
-
-    }
-
-});
-
-// ==========================================
-// WhatsApp Order Form
-// ==========================================
-
-const orderForm =
-document.getElementById("orderForm");
-
-orderForm.addEventListener("submit", function(e){
-
-    e.preventDefault();
-
-    const name =
-    document.getElementById("name").value;
-
-    const phone =
-    document.getElementById("phone").value;
-
-    const business =
-    document.getElementById("business").value;
-
-    const address =
-    document.getElementById("address").value;
-
-    const product =
-    document.getElementById("product").value;
-
-    const quantity =
-    parseInt(
-    document.getElementById("quantity").value
-    );
-
-    if(quantity < 2){
-
-        alert(
-        "Minimum Order is 2 Peti."
-        );
-
-        return;
-
-    }
-
-    const message =
-
-`Hello Nature Sheep,
-
-Name: ${name}
-
-Phone: ${phone}
-
-Business Name: ${business}
-
-Address: ${address}
-
-Product: ${product}
-
-Quantity: ${quantity}
-
-I would like to place a bulk water order.`;
-
-    const whatsappURL =
-    `https://wa.me/918448417564?text=${encodeURIComponent(message)}`;
-
-    window.open(
-        whatsappURL,
-        "_blank"
-    );
-
-});
-
-// ==========================================
-// Smooth Active Navigation
-// ==========================================
-
-const sections =
-document.querySelectorAll("section");
-
-const navItems =
-document.querySelectorAll(".nav-links a");
-
-window.addEventListener("scroll", () => {
-
-    let current = "";
-
-    sections.forEach(section => {
-
-        const sectionTop =
-        section.offsetTop - 150;
-
-        const sectionHeight =
-        section.clientHeight;
-
-        if(window.scrollY >= sectionTop){
-
-            current =
-            section.getAttribute("id");
-
-        }
-
-    });
-
-    navItems.forEach(link => {
-
-        link.classList.remove("active");
-
-        if(
-            link.getAttribute("href")
-            === `#${current}`
-        ){
-            link.classList.add("active");
-        }
-
+        navItems.forEach(a => {
+            a.classList.remove("active");
+            if (a.getAttribute("href") === `#${current}`) {
+                a.classList.add("active");
+            }
+        });
     });
 
 });
-
-// ==========================================
-// Water Ripple Hover Effect
-// ==========================================
-
-document
-.querySelectorAll(
-".product-card, .glass-card, .feature-card"
-)
-.forEach(card => {
-
-    card.addEventListener("mouseenter", () => {
-
-        card.style.transition =
-        "all .4s ease";
-
-    });
-
-});
-
-// ==========================================
-// Floating Water Bubble Generator
-// ==========================================
-
-const particles =
-document.querySelector(".particles");
-
-for(let i = 0; i < 25; i++){
-
-    const bubble =
-    document.createElement("span");
-
-    bubble.style.position = "absolute";
-
-    bubble.style.width =
-    Math.random()*10 + 8 + "px";
-
-    bubble.style.height =
-    bubble.style.width;
-
-    bubble.style.borderRadius = "50%";
-
-    bubble.style.background =
-    "rgba(0,153,255,.15)";
-
-    bubble.style.left =
-    Math.random()*100 + "%";
-
-    bubble.style.bottom =
-    "-50px";
-
-    bubble.style.animation =
-    `bubbleFloat ${Math.random()*8+8}s linear infinite`;
-
-    bubble.style.animationDelay =
-    `${Math.random()*5}s`;
-
-    particles.appendChild(bubble);
-
-}
-
-// ==========================================
-// Bubble Animation CSS Injection
-// ==========================================
-
-const style =
-document.createElement("style");
-
-style.innerHTML = `
-
-@keyframes bubbleFloat{
-
-    0%{
-        transform:
-        translateY(0);
-        opacity:0;
-    }
-
-    20%{
-        opacity:1;
-    }
-
-    100%{
-        transform:
-        translateY(-110vh);
-        opacity:0;
-    }
-
-}
-
-`;
-
-document.head.appendChild(style);
-
-// ==========================================
-// End Script
-// ==========================================
